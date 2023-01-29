@@ -10,6 +10,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/RustCrypto/media/8f1a9894/logo.svg"
 )]
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
@@ -145,10 +146,16 @@ pub fn bcrypt_pbkdf(
 
     let mut vec_buf;
     let mut stack_buf = [0u8; STACK_STRIDE * BHASH_OUTPUT_SIZE];
+    #[cfg(feature = "alloc")]
     let generated = if stride > STACK_STRIDE {
         vec_buf = alloc::vec![0u8; stride * BHASH_OUTPUT_SIZE];
         &mut vec_buf[..]
     } else {
+        &mut stack_buf[..stride * BHASH_OUTPUT_SIZE]
+    };
+    #[cfg(not(feature = "alloc"))]
+    let generated = {
+        vec_buf = ();
         &mut stack_buf[..stride * BHASH_OUTPUT_SIZE]
     };
 
